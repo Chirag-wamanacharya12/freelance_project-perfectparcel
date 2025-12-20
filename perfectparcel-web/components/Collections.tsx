@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 
@@ -59,9 +60,9 @@ export default function Collections() {
               <p className="text-gray-600 text-sm leading-relaxed">
                 Our latest collection offers a stunning variety of styles, ranging from the delicate elegance of pearls to the bold statement of chunky chains. Each piece is designed to be mixed and matched, allowing you to curate your own personal style with every detail.
               </p>
-              <button className="px-8 py-3 rounded-full border border-gray-400 text-gray-700 hover:bg-gray-800 hover:text-white transition-colors uppercase text-sm tracking-wider">
+              <Link href="/products" className="px-8 py-3 rounded-full border border-gray-400 text-gray-700 hover:bg-gray-800 hover:text-white transition-colors uppercase text-sm tracking-wider inline-block">
                 See All
-              </button>
+              </Link>
            </div>
 
            <div className="md:w-2/3 relative group">
@@ -96,9 +97,6 @@ export default function Collections() {
                                 fill
                                 className="object-cover group-hover/card:scale-110 transition-transform duration-500"
                              />
-                              {/* <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-400 font-mono opacity-0 group-hover/card:opacity-100 bg-white/80 transition-opacity z-10 pointer-events-none">
-                                 {item.image}
-                              </div> */}
                              <div className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full backdrop-blur-sm z-20">
                                 <ShoppingBag className="w-4 h-4 text-gray-700" />
                              </div>
