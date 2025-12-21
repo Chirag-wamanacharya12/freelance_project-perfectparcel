@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { put } from "@vercel/blob";
 
 export const runtime = "nodejs";
 
@@ -18,19 +17,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "No file provided" }, { status: 400 });
   }
 
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  const original = file.name || "upload.bin";
-  const ext = original.includes(".") ? original.split(".").pop()!.toLowerCase() : "bin";
-  const safeExt = ["png", "jpg", "jpeg", "webp", "gif"].includes(ext) ? ext : "bin";
-  const name = `${Date.now()}-${Math.random().toString(36).slice(2)}.${safeExt}`;
+  const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
+  if (!token) {
+    return NextResponse.json({ message: "Blob token not configured" }, { status: 500 });
+  }
 
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  await fs.mkdir(uploadDir, { recursive: true });
-  const filePath = path.join(uploadDir, name);
-  await fs.writeFile(filePath, buffer);
+  const key = `products/${Date.now()}-${file.name}`;
+  const blob = await put(key, file, { access: "public", token });
 
-  const url = `/uploads/${name}`;
-  return NextResponse.json({ url });
+  return NextResponse.json({ url: blob.url });
 }
-

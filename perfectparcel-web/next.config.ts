@@ -1,14 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Remove remote patterns as we are using local images
   images: {
-    // remotePatterns: [
-    //   {
-    //     protocol: 'https',
-    //     hostname: 'images.unsplash.com',
-    //   },
-    // ],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.public.blob.vercel-storage.com",
+      },
+    ],
   },
 };
 
