@@ -51,7 +51,7 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
     e.preventDefault();
     setError("");
     setSuccess("");
-    if (!name || !mobile || !house || !street || !codes) {
+    if (!name || !mobile || !altMobile || !house || !street || !landmark || !pin || !codes) {
       setError("Please fill all required fields");
       return;
     }
@@ -112,6 +112,7 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
+            required
           />
         </div>
         <div className="space-y-1.5">
@@ -122,6 +123,7 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
             value={mobile}
             onChange={(e) => setMobile(e.target.value)}
             className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
+            required
           />
         </div>
       </div>
@@ -134,6 +136,7 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
             value={house}
             onChange={(e) => setHouse(e.target.value)}
             className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
+            required
           />
           <input
             type="text"
@@ -141,6 +144,7 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
             value={street}
             onChange={(e) => setStreet(e.target.value)}
             className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
+            required
           />
           <div className="grid grid-cols-[2fr_1fr] gap-3">
             <input
@@ -149,6 +153,7 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
               value={landmark}
               onChange={(e) => setLandmark(e.target.value)}
               className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
+              required
             />
             <input
               type="text"
@@ -156,6 +161,7 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
               value={pin}
               onChange={(e) => setPin(e.target.value)}
               className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
+              required
             />
           </div>
         </div>
@@ -168,6 +174,7 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
               value={altMobile}
               onChange={(e) => setAltMobile(e.target.value)}
               className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
+              required
             />
           </div>
           <div className="flex items-center gap-2 pt-2">
@@ -194,6 +201,46 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
       </div>
 
       <ProductCodePicker products={products} value={codes} onChange={setCodes} />
+      <div className="p-4 rounded-xl border border-gray-100 bg-white">
+        <div className="flex items-center justify-between text-sm">
+          <div className="text-gray-600">Subtotal</div>
+          <div className="font-bold text-gray-900">
+            ₹{
+              codes
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)
+                .reduce((sum, id) => {
+                  const p = products.find((pr) => pr.productId === id);
+                  return sum + (p?.price || 0);
+                }, 0)
+            }
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-sm mt-2">
+          <div className="text-gray-600">Delivery</div>
+          <div className="font-bold text-gray-900">₹50</div>
+        </div>
+        <div className="flex items-center justify-between text-sm mt-2">
+          <div className="text-gray-600">Gift wrap</div>
+          <div className="font-bold text-gray-900">₹{giftWrap ? 20 : 0}</div>
+        </div>
+        <div className="flex items-center justify-between text-sm mt-3 border-t pt-3">
+          <div className="text-gray-800 font-bold">Total</div>
+          <div className="text-gray-900 font-extrabold">
+            ₹{
+              codes
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)
+                .reduce((sum, id) => {
+                  const p = products.find((pr) => pr.productId === id);
+                  return sum + (p?.price || 0);
+                }, 0) + 50 + (giftWrap ? 20 : 0)
+            }
+          </div>
+        </div>
+      </div>
 
       {error && <div className="text-red-500 text-sm">{error}</div>}
       {success && <div className="text-green-600 text-sm">{success}</div>}

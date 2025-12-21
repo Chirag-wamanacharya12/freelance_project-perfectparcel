@@ -26,12 +26,43 @@ export default function AddProductForm() {
     return Math.max(0, Number(discounted.toFixed(2)));
   }, [price, discount]);
 
+  const resizeImage = async (input: File) => {
+    const url = URL.createObjectURL(input);
+    const img = document.createElement("img");
+    img.src = url;
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("Image load failed"));
+    });
+    URL.revokeObjectURL(url);
+    const maxSide = 1200;
+    const w = img.naturalWidth || img.width;
+    const h = img.naturalHeight || img.height;
+    const scale = Math.min(1, maxSide / Math.max(w, h));
+    const targetW = Math.max(1, Math.round(w * scale));
+    const targetH = Math.max(1, Math.round(h * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return input;
+    ctx.drawImage(img, 0, 0, targetW, targetH);
+    const blob: Blob | null = await new Promise((resolve) =>
+      canvas.toBlob((b) => resolve(b), "image/webp", 0.8)
+    );
+    if (!blob) return input;
+    const base = input.name.replace(/\.[^/.]+$/, "");
+    const optimized = new File([blob], `${base}.webp`, { type: "image/webp" });
+    return optimized;
+  };
+
   const uploadImage = async () => {
     if (!file) return;
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      const resized = await resizeImage(file);
+      formData.append("file", resized);
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,

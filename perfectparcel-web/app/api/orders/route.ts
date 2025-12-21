@@ -28,7 +28,10 @@ export async function POST(req: Request) {
       .collection("products")
       .find({ productId: { $in: productIds } })
       .toArray();
-    const amount = products.reduce((sum, p: any) => sum + (p.price || 0), 0);
+    const baseAmount = products.reduce((sum, p: any) => sum + (p.price || 0), 0);
+    const deliveryCharge = 50;
+    const giftWrapCharge = giftWrap ? 20 : 0;
+    const amount = baseAmount + deliveryCharge + giftWrapCharge;
 
     const orderId = `ORD-${Date.now().toString(36).toUpperCase()}`;
 
@@ -48,6 +51,7 @@ export async function POST(req: Request) {
       note: note || "",
       productIds,
       amount,
+      charges: { delivery: deliveryCharge, giftWrap: giftWrapCharge },
       status: "pending",
       createdAt: new Date().toISOString(),
     };
@@ -105,4 +109,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
-

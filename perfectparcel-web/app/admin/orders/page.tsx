@@ -8,6 +8,12 @@ type Order = {
   _id: string;
   orderId: string;
   customerName: string;
+  address?: {
+    house?: string;
+    street?: string;
+    landmark?: string;
+    pin?: string;
+  };
   productIds: string[];
   amount: number;
   status: "pending" | "processing" | "dispatched" | "shipped" | "delivered" | "canceled";
@@ -69,6 +75,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
               <tr>
                 <th className="text-left px-4 py-3">Order ID</th>
                 <th className="text-left px-4 py-3">Customer</th>
+                <th className="text-left px-4 py-3">Address</th>
                 <th className="text-left px-4 py-3">Products</th>
                 <th className="text-left px-4 py-3">Amount</th>
                 <th className="text-left px-4 py-3">Status</th>
@@ -87,6 +94,16 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
                   <tr key={o._id} className="border-t border-gray-100">
                     <td className="px-4 py-3 font-mono">{o.orderId || o._id}</td>
                     <td className="px-4 py-3">{o.customerName || "-"}</td>
+                    <td className="px-4 py-3">
+                      {[
+                        o.address?.house,
+                        o.address?.street,
+                        o.address?.landmark,
+                        o.address?.pin,
+                      ]
+                        .filter(Boolean)
+                        .join(", ") || "-"}
+                    </td>
                     <td className="px-4 py-3">{Array.isArray(o.productIds) ? o.productIds.join(", ") : "-"}</td>
                     <td className="px-4 py-3 font-bold">₹{o.amount ?? 0}</td>
                     <td className="px-4 py-3">
@@ -112,6 +129,16 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
                 <OrderStatusSelect id={o._id} value={o.status} />
               </div>
               <div className="mt-2 text-sm text-gray-700">{o.customerName || "-"}</div>
+              <div className="mt-1 text-xs text-gray-500">
+                {[
+                  o.address?.house,
+                  o.address?.street,
+                  o.address?.landmark,
+                  o.address?.pin,
+                ]
+                  .filter(Boolean)
+                  .join(", ") || "-"}
+              </div>
               <div className="mt-1 text-xs text-gray-500">{Array.isArray(o.productIds) ? o.productIds.join(", ") : "-"}</div>
               <div className="mt-2 flex items-center justify-between">
                 <div className="text-sm font-bold">₹{o.amount ?? 0}</div>
