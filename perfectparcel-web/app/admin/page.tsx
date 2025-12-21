@@ -124,7 +124,7 @@ export default async function AdminDashboard() {
           ) : (
             <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {insights.recent.map((p: any) => (
-                <div key={p._id} className="border rounded-xl overflow-hidden">
+                <div key={p._id} className={`border rounded-xl overflow-hidden ${p.inStock ? "" : "border-red-500"}`}>
                   <div className="relative aspect-square bg-gray-100">
                     <Image
                       src={p.image || "/images/placeholder.jpg"}

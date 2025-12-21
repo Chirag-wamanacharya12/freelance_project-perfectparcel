@@ -20,7 +20,7 @@ export default async function AdminProductsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((p: any) => (
-            <div key={p._id} className="border rounded-xl overflow-hidden bg-white">
+            <div key={p._id} className={`border rounded-xl overflow-hidden bg-white ${p.inStock ? "" : "border-red-500"}`}>
               <div className="relative aspect-square bg-gray-100">
                 <Image src={p.image || "/images/placeholder.jpg"} alt={p.name || p.productId} fill className="object-cover" />
               </div>
