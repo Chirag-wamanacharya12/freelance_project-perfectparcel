@@ -122,10 +122,10 @@ export default async function AdminDashboard() {
           {insights.recent.length === 0 ? (
             <div className="p-6 text-center text-gray-500">No recent products</div>
           ) : (
-            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {insights.recent.map((p: any) => (
                 <div key={p._id} className={`border rounded-xl overflow-hidden ${p.inStock ? "" : "border-red-500"}`}>
-                  <div className="relative aspect-square bg-gray-100">
+                  <div className="relative aspect-[4/5] bg-gray-100">
                     <Image
                       src={p.image || "/images/placeholder.jpg"}
                       alt={p.name || p.productId}
@@ -133,7 +133,7 @@ export default async function AdminDashboard() {
                       className="object-cover"
                     />
                   </div>
-                  <div className="px-3 py-2">
+                  <div className="px-2 py-1.5">
                     <div className="text-xs text-gray-500">Product id: {p.productId}</div>
                     <div className="text-sm font-bold text-gray-900">₹{p.price}</div>
                   </div>
