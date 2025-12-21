@@ -85,29 +85,33 @@ export default async function AdminDashboard() {
             <h2 className="text-lg font-bold text-gray-800">Categories</h2>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {insights.categories.map((cat) => (
-                <div key={cat.name} className="p-4 border rounded-xl">
-                  <div className="flex items-center justify-between">
-                    <div className="font-bold text-gray-800">{cat.name}</div>
-                    <div className="text-sm text-gray-500">{cat.count} items</div>
+            {insights.categories.length === 0 ? (
+              <div className="p-6 text-center text-gray-500 bg-white rounded-2xl border border-gray-100">No categories available</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {insights.categories.map((cat) => (
+                  <div key={cat.name} className="p-4 border rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="font-bold text-gray-800">{cat.name}</div>
+                      <div className="text-sm text-gray-500">{cat.count} items</div>
+                    </div>
+                    <div className="mt-3 h-2 bg-gray-100 rounded">
+                      <div
+                        className="h-2 bg-[#D14D59] rounded"
+                        style={{
+                          width: `${Math.min(100, Math.round((cat.inStockCount / Math.max(1, cat.count)) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="mt-2 flex items-center justify-between text-sm text-gray-600">
+                      <div>In stock: {cat.inStockCount}</div>
+                      <div>Total value: ₹{cat.totalValue}</div>
+                      <div>Avg price: ₹{cat.avgPrice}</div>
+                    </div>
                   </div>
-                  <div className="mt-3 h-2 bg-gray-100 rounded">
-                    <div
-                      className="h-2 bg-[#D14D59] rounded"
-                      style={{
-                        width: `${Math.min(100, Math.round((cat.inStockCount / Math.max(1, cat.count)) * 100))}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-sm text-gray-600">
-                    <div>In stock: {cat.inStockCount}</div>
-                    <div>Total value: ₹{cat.totalValue}</div>
-                    <div>Avg price: ₹{cat.avgPrice}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -115,24 +119,28 @@ export default async function AdminDashboard() {
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-800">Recent Products</h2>
           </div>
-          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {insights.recent.map((p: any) => (
-              <div key={p._id} className="border rounded-xl overflow-hidden">
-                <div className="relative aspect-square bg-gray-100">
-                  <Image
-                    src={p.image || "/images/placeholder.jpg"}
-                    alt={p.name || p.productId}
-                    fill
-                    className="object-cover"
-                  />
+          {insights.recent.length === 0 ? (
+            <div className="p-6 text-center text-gray-500">No recent products</div>
+          ) : (
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {insights.recent.map((p: any) => (
+                <div key={p._id} className="border rounded-xl overflow-hidden">
+                  <div className="relative aspect-square bg-gray-100">
+                    <Image
+                      src={p.image || "/images/placeholder.jpg"}
+                      alt={p.name || p.productId}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="px-3 py-2">
+                    <div className="text-xs text-gray-500">Product id: {p.productId}</div>
+                    <div className="text-sm font-bold text-gray-900">₹{p.price}</div>
+                  </div>
                 </div>
-                <div className="px-3 py-2">
-                  <div className="text-xs text-gray-500">Product id: {p.productId}</div>
-                  <div className="text-sm font-bold text-gray-900">₹{p.price}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
   );

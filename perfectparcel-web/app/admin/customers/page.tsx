@@ -33,6 +33,9 @@ export default async function AdminCustomersPage() {
           <div className="text-3xl font-bold text-gray-900">{stats.returning}</div>
         </div>
       </div>
+      {stats.total === 0 && (
+        <div className="p-6 text-center text-gray-500 bg-white rounded-2xl border border-gray-100">No customers for the current month</div>
+      )}
     </div>
   );
 }
