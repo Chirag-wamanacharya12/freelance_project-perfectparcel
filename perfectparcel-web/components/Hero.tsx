@@ -10,7 +10,7 @@ export default function Hero() {
          {/* Placeholder for user image */}
          <Image 
             src="/images/Frame 4.png"
-            alt="Hero Background - Upload image as public/images/hero-bg.jpg"
+            alt="Hero Background - Upload image as public/images/hero-bg.png"
             fill
             className="object-contain object-right"
             priority
