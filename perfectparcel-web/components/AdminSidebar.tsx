@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Package, Users, Store, Wallet, Megaphone, HelpCircle, LogOut } from "lucide-react";
+import { Home, Package, Users, Store, Wallet, Megaphone, HelpCircle, LogOut, ClipboardList } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 
 const items = [
   { href: "/admin", label: "Home", icon: Home },
+  { href: "/admin/orders", label: "Orders", icon: ClipboardList },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/income", label: "Income", icon: Wallet },
@@ -51,4 +52,3 @@ export default function AdminSidebar() {
     </aside>
   );
 }
-

@@ -6,9 +6,10 @@ export default function AdminIncomePage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Income</h1>
       <div className="p-6 rounded-2xl border border-gray-100 shadow-sm bg-white">
-        <div className="flex items-end gap-3 h-48">
+        <div className="overflow-x-auto hide-scrollbar">
+          <div className="flex items-end gap-4 h-48 w-max pr-4">
           {values.map((v, i) => (
-            <div key={i} className="flex flex-col items-center gap-2">
+            <div key={i} className="flex flex-col items-center gap-2 min-w-12">
               <div
                 className="w-6 bg-[#3B82F6] rounded"
                 style={{ height: `${Math.round((v / max) * 100)}%` }}
@@ -17,9 +18,9 @@ export default function AdminIncomePage() {
               <div className="text-xs text-gray-500">{months[i]}</div>
             </div>
           ))}
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

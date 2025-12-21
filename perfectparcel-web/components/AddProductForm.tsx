@@ -11,6 +11,7 @@ export default function AddProductForm() {
   const [productId, setProductId] = useState("");
   const [priceInput, setPriceInput] = useState<string>("");
   const [discountInput, setDiscountInput] = useState<string>("0");
+  const [quantityInput, setQuantityInput] = useState<string>("0");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -18,6 +19,7 @@ export default function AddProductForm() {
 
   const price = Number(priceInput) || 0;
   const discount = Math.min(Math.max(Number(discountInput) || 0, 0), 100);
+  const quantity = Math.max(0, Math.floor(Number(quantityInput) || 0));
 
   const finalPrice = useMemo(() => {
     const discounted = price - price * (discount / 100);
@@ -74,6 +76,7 @@ export default function AddProductForm() {
           productId,
           price: finalPrice,
           discount,
+          quantity,
         }),
       });
       const data = await res.json();
@@ -88,6 +91,7 @@ export default function AddProductForm() {
         setProductId("");
         setPriceInput("");
         setDiscountInput("0");
+        setQuantityInput("0");
       }
     } catch (err) {
       setError("Something went wrong");
@@ -206,6 +210,21 @@ export default function AddProductForm() {
             placeholder="0"
             value={discountInput}
             onChange={(e) => setDiscountInput(e.target.value)}
+            className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold text-gray-800">Quantity in stock</label>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            placeholder="0"
+            value={quantityInput}
+            onChange={(e) => setQuantityInput(e.target.value)}
             className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
           />
         </div>

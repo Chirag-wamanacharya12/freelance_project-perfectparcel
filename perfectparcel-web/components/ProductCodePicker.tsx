@@ -11,20 +11,27 @@ type Item = {
   name?: string;
 };
 
-export default function ProductCodePicker({ products }: { products: Item[] }) {
-  const [value, setValue] = useState("");
+export default function ProductCodePicker({
+  products,
+  value,
+  onChange,
+}: {
+  products: Item[];
+  value: string;
+  onChange: (val: string) => void;
+}) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const ids = value
+    const ids = (value || "")
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
     const initial: Record<string, boolean> = {};
     ids.forEach((id) => (initial[id] = true));
     setSelected(initial);
-  }, [open]);
+  }, [open, value]);
 
   const toggle = (id: string) => {
     setSelected((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -36,7 +43,7 @@ export default function ProductCodePicker({ products }: { products: Item[] }) {
   );
 
   const confirm = () => {
-    setValue(selectedIds.join(", "));
+    onChange(selectedIds.join(", "));
     setOpen(false);
   };
 
@@ -48,7 +55,7 @@ export default function ProductCodePicker({ products }: { products: Item[] }) {
           type="text"
           placeholder="Enter code of selected product use comma if multiple products"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           className="w-full text-sm p-3 pr-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
         />
         <button
@@ -128,4 +135,3 @@ export default function ProductCodePicker({ products }: { products: Item[] }) {
     </div>
   );
 }
-

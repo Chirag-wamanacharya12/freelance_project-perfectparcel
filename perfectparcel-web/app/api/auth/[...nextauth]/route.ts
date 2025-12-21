@@ -55,6 +55,26 @@ export const authOptions: AuthOptions = {
       return session;
     },
   },
+  events: {
+    async signIn({ user }) {
+      try {
+        const client = await clientPromise;
+        const db = client.db("perfectparcel");
+        if (user?.role === "customer") {
+          await db.collection("notifications").insertOne({
+            role: "admin",
+            userId: null,
+            type: "user_login",
+            title: "Customer logged in",
+            message: `${user.name || user.email} logged in`,
+            data: { userId: user.id },
+            seenBy: [],
+            createdAt: new Date(),
+          });
+        }
+      } catch {}
+    },
+  },
   pages: {
     signIn: "/login",
   },

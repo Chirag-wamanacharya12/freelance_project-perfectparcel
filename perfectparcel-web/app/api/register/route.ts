@@ -36,6 +36,17 @@ export async function POST(req: Request) {
       createdAt: new Date(),
     });
 
+    await db.collection("notifications").insertOne({
+      role: "admin",
+      userId: null,
+      type: "user_registered",
+      title: "New customer registered",
+      message: `${name} joined`,
+      data: { email },
+      seenBy: [],
+      createdAt: new Date(),
+    });
+
     return NextResponse.json(
       { message: "User created", userId: result.insertedId },
       { status: 201 }

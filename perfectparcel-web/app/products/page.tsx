@@ -3,8 +3,7 @@ import Image from "next/image";
 import { Plus } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import AddProductForm from "@/components/AddProductForm";
-import ProductCodePicker from "@/components/ProductCodePicker";
+import PlaceOrderForm from "@/components/PlaceOrderForm";
 
 interface Product {
   _id: string;
@@ -52,6 +51,12 @@ export default async function ProductsPage() {
       <div className="bg-[#BF2B32] text-white py-6 sticky top-0 z-50 shadow-md">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <h1 className="font-serif text-2xl font-bold tracking-wide">Our Collections</h1>
+          {/* <a
+            href="#order-form"
+            className="px-4 py-2 bg-white text-[#D14D59] rounded-full text-sm font-bold shadow hover:bg-gray-100"
+          >
+            Place order
+          </a> */}
           <a
             href="/"
             className="px-4 py-2 bg-white text-[#D14D59] rounded-full text-sm font-bold shadow hover:bg-gray-100"
@@ -69,24 +74,23 @@ export default async function ProductsPage() {
            </div>
         ) : (
           Object.entries(categories).map(([category, items]) => (
-            <div key={category} className="mb-16">
-              <h2 className="text-xl font-bold text-gray-800 mb-8 border-b-2 border-gray-100 pb-2 inline-block pr-10">
+            <div key={category} className="mb-12">
+              <h2 className="text-xl font-bold text-gray-800 mb-6 border-b-2 border-gray-100 pb-2 inline-block pr-10">
                 {category}
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {items.map((product) => (
-                  <div key={product._id} className="bg-white group">
-                    <div className="relative aspect-square w-full bg-gray-100 rounded-2xl overflow-hidden mb-4 shadow-sm border border-gray-100">
+                  <div key={product._id} className="bg-white group rounded-lg border border-gray-200 shadow-sm p-2">
+                    <div className="relative aspect-square w-full bg-gray-100 rounded-md overflow-hidden mb-2 border border-gray-100">
                       <Image
                         src={product.image || "/images/placeholder.jpg"}
                         alt={product.name}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      {/* Optional: Add quick view or add to cart overlay here */}
                     </div>
-                    <div className="space-y-1.5 px-1">
-                      <h3 className="text-sm font-bold text-gray-900 leading-tight line-clamp-2">
+                    <div className="space-y-1 px-1">
+                      <h3 className="text-sm font-bold text-gray-900 leading-tight">
                         {product.name}
                       </h3>
                       <p className="text-[10px] text-gray-500 font-mono">
@@ -108,98 +112,17 @@ export default async function ProductsPage() {
           ))
         )}
 
-        {/* Admin: Add Product / Customer: Place Order */}
-        <div className="mt-20 border-2 border-[#D14D59] rounded-xl overflow-hidden max-w-4xl mx-auto shadow-xl bg-white">
-          <div className="bg-[#D14D59] text-white py-4 text-center font-bold text-xl tracking-wide">
-            {isAdmin ? "Add Product" : "Place Order"}
+        {/* Customer: Place Order */}
+        {!isAdmin && (
+          <div id="order-form" className="mt-20 border-2 border-[#D14D59] rounded-xl overflow-hidden max-w-4xl mx-auto shadow-xl bg-white">
+            <div className="bg-[#D14D59] text-white py-4 text-center font-bold text-xl tracking-wide">
+              Place Order
+            </div>
+            <div className="p-8">
+              <PlaceOrderForm products={products} />
+            </div>
           </div>
-          <div className="p-8">
-            {isAdmin ? (
-              <AddProductForm />
-            ) : (
-              <form className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-800">Customer name</label>
-                    <input
-                      type="text"
-                      placeholder="Enter your name"
-                      className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-800">Mobile no</label>
-                    <input
-                      type="tel"
-                      placeholder="Enter your mobile no"
-                      className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className="text-xs font-bold text-gray-800">Delivery address</label>
-                    <input
-                      type="text"
-                      placeholder="House no / Apartment"
-                      className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Locality / street / city"
-                      className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-                    />
-                    <div className="grid grid-cols-[2fr_1fr] gap-3">
-                      <input
-                        type="text"
-                        placeholder="Landmark"
-                        className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Pin Code"
-                        className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-gray-800">Alternate Mobile no</label>
-                      <input
-                        type="tel"
-                        placeholder="Enter your mobile no"
-                        className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 pt-2">
-                      <input
-                        type="checkbox"
-                        id="gift-wrap"
-                        className="w-4 h-4 accent-[#D14D59] rounded cursor-pointer"
-                      />
-                      <label htmlFor="gift-wrap" className="text-sm text-gray-500 cursor-pointer select-none">
-                        Want Gift wrap ? ( charges applicable )
-                      </label>
-                    </div>
-                    <div className="relative">
-                      <textarea
-                        placeholder="Additional note"
-                        className="w-full text-sm p-3 bg-gray-100 rounded-lg h-24 resize-none focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-                      ></textarea>
-                    </div>
-                  </div>
-                </div>
-                <ProductCodePicker products={products} />
-                <button
-                  type="submit"
-                  className="w-full bg-[#D14D59] text-white py-3 rounded-lg text-sm font-bold hover:bg-[#b93c47] transition-all shadow-md mt-4"
-                >
-                  Send details
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
+        )}
 
       </div>
       
