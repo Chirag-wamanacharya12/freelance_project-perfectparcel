@@ -9,7 +9,7 @@ export default function Hero() {
       <div className="absolute inset-0 w-full h-full bg-[#BF2B32]">
          {/* Placeholder for user image */}
          <Image 
-            src="/images/Frame 4.png"
+            src="/images/hero-bg.png"
             alt="Hero Background - Upload image as public/images/hero-bg.png"
             fill
             className="object-contain object-right"
