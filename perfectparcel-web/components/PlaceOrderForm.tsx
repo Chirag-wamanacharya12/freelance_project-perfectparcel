@@ -27,22 +27,26 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const selectedIds = useMemo(
-    () =>
-      codes
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    [codes]
-  );
-  const subtotal = useMemo(
-    () =>
-      selectedIds.reduce((sum, id) => {
-        const p = products.find((pr) => pr.productId === id);
-        return sum + (p?.price || 0);
-      }, 0),
-    [selectedIds, products]
-  );
+  const selectedItems = useMemo(() => {
+    const arr = codes
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((raw) => {
+        const m = raw.match(/^(.+?)\((\d+)\)$/);
+        if (m) {
+          return { id: m[1], qty: Math.max(1, Number(m[2])) };
+        }
+        return { id: raw, qty: 1 };
+      });
+    return arr;
+  }, [codes]);
+  const subtotal = useMemo(() => {
+    return selectedItems.reduce((sum, it) => {
+      const p = products.find((pr) => pr.productId === it.id);
+      return sum + (p?.price || 0) * it.qty;
+    }, 0);
+  }, [selectedItems, products]);
   const delivery = useMemo(() => (subtotal > 0 ? 50 : 0), [subtotal]);
   const giftWrapCharge = useMemo(() => (subtotal > 0 && giftWrap ? 20 : 0), [subtotal, giftWrap]);
   const total = useMemo(() => subtotal + delivery + giftWrapCharge, [subtotal, delivery, giftWrapCharge]);
@@ -92,10 +96,7 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
           },
           giftWrap,
           note,
-          productIds: codes
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean),
+          productIds: selectedItems.flatMap((it) => Array(it.qty).fill(it.id)),
         }),
       });
       const data = await res.json();

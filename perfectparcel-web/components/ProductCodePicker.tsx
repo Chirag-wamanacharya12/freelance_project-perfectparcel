@@ -21,29 +21,48 @@ export default function ProductCodePicker({
   onChange: (val: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [selected, setSelected] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const ids = (value || "")
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
-    const initial: Record<string, boolean> = {};
-    ids.forEach((id) => (initial[id] = true));
+    const initial: Record<string, number> = {};
+    ids.forEach((raw) => {
+      const m = raw.match(/^(.+?)\((\d+)\)$/);
+      if (m) {
+        const [, id, n] = m;
+        initial[id] = Math.max(1, Number(n));
+      } else {
+        initial[raw] = 1;
+      }
+    });
     setSelected(initial);
   }, [open, value]);
 
   const toggle = (id: string) => {
-    setSelected((prev) => ({ ...prev, [id]: !prev[id] }));
+    setSelected((prev) => {
+      const curr = prev[id] || 0;
+      const next = curr > 0 ? 0 : 1;
+      return { ...prev, [id]: next };
+    });
   };
 
   const selectedIds = useMemo(
-    () => Object.keys(selected).filter((id) => selected[id]),
+    () => Object.keys(selected).filter((id) => (selected[id] || 0) > 0),
     [selected]
   );
 
   const confirm = () => {
-    onChange(selectedIds.join(", "));
+    const codes = selectedIds
+      .map((id) => {
+        const qty = selected[id] || 0;
+        if (qty <= 1) return id;
+        return `${id}(${qty})`;
+      })
+      .join(", ");
+    onChange(codes);
     setOpen(false);
   };
 
@@ -103,7 +122,7 @@ export default function ProductCodePicker({
                       />
                       <input
                         type="checkbox"
-                        checked={!!selected[p.productId]}
+                        checked={(selected[p.productId] || 0) > 0}
                         onChange={() => toggle(p.productId)}
                         className="absolute top-2 left-2 w-4 h-4 accent-[#D14D59]"
                       />
@@ -111,6 +130,48 @@ export default function ProductCodePicker({
                     <div className="px-3 py-2">
                       <div className="text-xs text-gray-500">Product id: {p.productId}</div>
                       <div className="text-sm font-bold text-gray-900">₹{p.price}</div>
+                      {(selected[p.productId] || 0) > 0 && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setSelected((prev) => {
+                                const curr = prev[p.productId] || 1;
+                                const next = Math.max(1, curr - 1);
+                                return { ...prev, [p.productId]: next };
+                              });
+                            }}
+                            className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min={1}
+                            value={selected[p.productId] || 1}
+                            onChange={(e) => {
+                              const n = Math.max(1, Number(e.target.value) || 1);
+                              setSelected((prev) => ({ ...prev, [p.productId]: n }));
+                            }}
+                            className="w-14 text-sm p-1.5 text-center bg-gray-100 rounded"
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setSelected((prev) => {
+                                const curr = prev[p.productId] || 1;
+                                const next = curr + 1;
+                                return { ...prev, [p.productId]: next };
+                              });
+                            }}
+                            className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </label>
                 ))}

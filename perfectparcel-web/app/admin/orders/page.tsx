@@ -50,6 +50,17 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
   const status = sp.status || "all";
   const orders = await getOrders(status);
   const allStatuses: Order["status"][] = ["pending", "processing", "dispatched", "shipped", "delivered", "canceled"];
+  const formatCodes = (ids?: string[]) => {
+    if (!Array.isArray(ids) || ids.length === 0) return "-";
+    const counts: Record<string, number> = {};
+    const ordered: string[] = [];
+    for (const id of ids) {
+      const k = String(id);
+      if (!(k in counts)) ordered.push(k);
+      counts[k] = (counts[k] || 0) + 1;
+    }
+    return ordered.map((k) => (counts[k] > 1 ? `${k}(${counts[k]})` : k)).join(", ");
+  };
 
   return (
     <div className="space-y-6">
@@ -104,7 +115,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
                         .filter(Boolean)
                         .join(", ") || "-"}
                     </td>
-                    <td className="px-4 py-3">{Array.isArray(o.productIds) ? o.productIds.join(", ") : "-"}</td>
+                    <td className="px-4 py-3">{formatCodes(o.productIds)}</td>
                     <td className="px-4 py-3 font-bold">₹{o.amount ?? 0}</td>
                     <td className="px-4 py-3">
                       <OrderStatusSelect id={o._id} value={o.status} />
@@ -139,7 +150,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
                   .filter(Boolean)
                   .join(", ") || "-"}
               </div>
-              <div className="mt-1 text-xs text-gray-500">{Array.isArray(o.productIds) ? o.productIds.join(", ") : "-"}</div>
+              <div className="mt-1 text-xs text-gray-500">{formatCodes(o.productIds)}</div>
               <div className="mt-2 flex items-center justify-between">
                 <div className="text-sm font-bold">₹{o.amount ?? 0}</div>
                 <div className="text-xs text-gray-500">{new Date(o.createdAt).toLocaleString()}</div>

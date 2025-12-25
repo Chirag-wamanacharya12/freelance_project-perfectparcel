@@ -66,7 +66,7 @@ export default function OrderStatusSelect({
       value={status}
       onChange={(e) => change(e.target.value as Status)}
       className={`text-xs px-2 py-1 rounded-full ${colorFor(status)} border border-gray-200`}
-      disabled={pending || saving}
+      disabled={pending || saving || status === "delivered" || status === "canceled"}
     >
       <option value="pending">pending</option>
       <option value="processing">processing</option>
