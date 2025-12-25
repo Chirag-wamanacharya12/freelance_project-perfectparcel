@@ -29,6 +29,7 @@ export async function POST(req: Request) {
       discount: Math.min(Math.max(Number(discount) || 0, 0), 100),
       quantity: Math.max(0, Number(quantity ?? 0)),
       inStock: Math.max(0, Number(quantity ?? 0)) > 0,
+      is_discontinued: false,
       createdAt: new Date(),
     };
 

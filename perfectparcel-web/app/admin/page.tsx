@@ -1,5 +1,6 @@
 import clientPromise from "@/lib/mongodb";
 import Image from "next/image";
+import AdminProductCard from "@/components/AdminProductCard";
 
 export const dynamic = "force-dynamic";
 
@@ -124,20 +125,7 @@ export default async function AdminDashboard() {
           ) : (
             <div className="p-6 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {insights.recent.map((p: any) => (
-                <div key={p._id} className={`border rounded-xl overflow-hidden ${p.inStock ? "" : "border-red-500"}`}>
-                  <div className="relative aspect-[4/5] bg-gray-100">
-                    <Image
-                      src={p.image || "/images/placeholder.jpg"}
-                      alt={p.name || p.productId}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="px-2 py-1.5">
-                    <div className="text-xs text-gray-500">Product id: {p.productId}</div>
-                    <div className="text-sm font-bold text-gray-900">₹{p.price}</div>
-                  </div>
-                </div>
+                <AdminProductCard key={p._id} product={p} compact />
               ))}
             </div>
           )}

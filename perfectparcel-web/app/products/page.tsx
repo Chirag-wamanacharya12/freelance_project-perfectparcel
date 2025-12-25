@@ -19,7 +19,7 @@ interface Product {
 async function getProducts() {
   const client = await clientPromise;
   const db = client.db("perfectparcel");
-  const products = await db.collection("products").find({}).toArray();
+  const products = await db.collection("products").find({ is_discontinued: { $ne: true } }).toArray();
   // Serialize to handle ObjectId and other non-serializable fields if needed, 
   // though for server components strict serialization isn't always enforced for internal use,
   // but it's good practice especially if we pass data to client components later.

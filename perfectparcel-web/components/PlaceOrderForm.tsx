@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ProductCodePicker from "@/components/ProductCodePicker";
 import { useSession } from "next-auth/react";
 
@@ -26,6 +26,26 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const selectedIds = useMemo(
+    () =>
+      codes
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    [codes]
+  );
+  const subtotal = useMemo(
+    () =>
+      selectedIds.reduce((sum, id) => {
+        const p = products.find((pr) => pr.productId === id);
+        return sum + (p?.price || 0);
+      }, 0),
+    [selectedIds, products]
+  );
+  const delivery = useMemo(() => (subtotal > 0 ? 50 : 0), [subtotal]);
+  const giftWrapCharge = useMemo(() => (subtotal > 0 && giftWrap ? 20 : 0), [subtotal, giftWrap]);
+  const total = useMemo(() => subtotal + delivery + giftWrapCharge, [subtotal, delivery, giftWrapCharge]);
 
   useEffect(() => {
     const load = async () => {
@@ -204,41 +224,19 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
       <div className="p-4 rounded-xl border border-gray-100 bg-white">
         <div className="flex items-center justify-between text-sm">
           <div className="text-gray-600">Subtotal</div>
-          <div className="font-bold text-gray-900">
-            ₹{
-              codes
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean)
-                .reduce((sum, id) => {
-                  const p = products.find((pr) => pr.productId === id);
-                  return sum + (p?.price || 0);
-                }, 0)
-            }
-          </div>
+          <div className="font-bold text-gray-900">₹{subtotal}</div>
         </div>
         <div className="flex items-center justify-between text-sm mt-2">
           <div className="text-gray-600">Delivery</div>
-          <div className="font-bold text-gray-900">₹50</div>
+          <div className="font-bold text-gray-900">₹{delivery}</div>
         </div>
         <div className="flex items-center justify-between text-sm mt-2">
           <div className="text-gray-600">Gift wrap</div>
-          <div className="font-bold text-gray-900">₹{giftWrap ? 20 : 0}</div>
+          <div className="font-bold text-gray-900">₹{giftWrapCharge}</div>
         </div>
         <div className="flex items-center justify-between text-sm mt-3 border-t pt-3">
           <div className="text-gray-800 font-bold">Total</div>
-          <div className="text-gray-900 font-extrabold">
-            ₹{
-              codes
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean)
-                .reduce((sum, id) => {
-                  const p = products.find((pr) => pr.productId === id);
-                  return sum + (p?.price || 0);
-                }, 0) + 50 + (giftWrap ? 20 : 0)
-            }
-          </div>
+          <div className="text-gray-900 font-extrabold">₹{total}</div>
         </div>
       </div>
 
