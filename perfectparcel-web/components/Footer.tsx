@@ -89,7 +89,7 @@ export default function Footer() {
            <h2 className="font-serif text-xl mb-4">Contact.</h2>
            <div className="space-y-2">
              <p className="text-gray-300 text-sm">perfect.parcel001@gmail.com</p>
-             <p className="text-gray-300 text-sm">91-234xxxxxxx</p>
+             <p className="text-gray-300 text-sm">+91 91566 79669</p>
              <div className="mt-4 flex justify-end gap-4">
                {/* Social placeholders */}
                <div className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#C63D4D] transition-colors cursor-pointer flex items-center justify-center text-xs">FB</div>
