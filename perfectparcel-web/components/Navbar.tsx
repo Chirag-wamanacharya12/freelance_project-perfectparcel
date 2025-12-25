@@ -29,7 +29,7 @@ export default function Navbar() {
             Home
           </Link>
           <Link 
-            href="#" 
+            href="/#features" 
             className="px-6 py-2 text-gray-700 hover:text-[#D14D59] rounded-full text-sm font-medium transition-colors"
           >
             About us
@@ -41,7 +41,7 @@ export default function Navbar() {
             Collections
           </Link>
           <Link 
-            href="#" 
+            href="/#footer" 
             className="px-6 py-2 text-gray-700 hover:text-[#D14D59] rounded-full text-sm font-medium transition-colors"
           >
             Contact us
@@ -118,13 +118,13 @@ export default function Navbar() {
             <Link href="/" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg bg-[#D14D59] text-white font-medium">
               Home
             </Link>
-            <Link href="#" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
+            <Link href="/#features" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
               About us
             </Link>
             <Link href="/products" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
               Collections
             </Link>
-            <Link href="#" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
+            <Link href="/#footer" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
               Contact us
             </Link>
             {session?.user?.role === "admin" && (

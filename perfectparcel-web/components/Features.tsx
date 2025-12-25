@@ -29,7 +29,7 @@ const features = [
 
 export default function Features() {
   return (
-    <section className="py-20 bg-white">
+    <section id="features" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-6">
         <h2 className="text-center font-serif text-4xl font-bold text-gray-800 mb-16">
           Our Charms
