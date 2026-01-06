@@ -8,17 +8,32 @@ type Order = {
   _id: string;
   orderId: string;
   customerName: string;
+  mobile?: string;
+  altMobile?: string;
   address?: {
     house?: string;
     street?: string;
     landmark?: string;
     pin?: string;
   };
+  giftWrap?: boolean;
+  note?: string;
   productIds: string[];
   amount: number;
   status: "pending" | "processing" | "dispatched" | "shipped" | "delivered" | "canceled";
   createdAt: string;
 };
+
+function formatProducts(productIds: string[]) {
+  if (!Array.isArray(productIds)) return "-";
+  const counts: Record<string, number> = {};
+  productIds.forEach((p) => {
+    counts[p] = (counts[p] || 0) + 1;
+  });
+  return Object.entries(counts)
+    .map(([name, count]) => `${name} (${count})`)
+    .join(", ");
+}
 
 function badge(status: Order["status"]) {
   const map: Record<Order["status"], string> = {
@@ -75,6 +90,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
               <tr>
                 <th className="text-left px-4 py-3">Order ID</th>
                 <th className="text-left px-4 py-3">Customer</th>
+                <th className="text-left px-4 py-3">Contact</th>
                 <th className="text-left px-4 py-3">Address</th>
                 <th className="text-left px-4 py-3">Products</th>
                 <th className="text-left px-4 py-3">Amount</th>
@@ -85,7 +101,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
             <tbody>
               {orders.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-center text-gray-500" colSpan={6}>
+                  <td className="px-4 py-8 text-center text-gray-500" colSpan={8}>
                     No orders found
                   </td>
                 </tr>
@@ -93,7 +109,14 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
                 orders.map((o) => (
                   <tr key={o._id} className="border-t border-gray-100">
                     <td className="px-4 py-3 font-mono">{o.orderId || o._id}</td>
-                    <td className="px-4 py-3">{o.customerName || "-"}</td>
+                    <td className="px-4 py-3">
+                      <div>{o.customerName || "-"}</div>
+                      {o.note && <div className="text-xs text-gray-500 italic mt-1">Note: {o.note}</div>}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <div>{o.mobile}</div>
+                      {o.altMobile && <div className="text-gray-500 text-xs">{o.altMobile}</div>}
+                    </td>
                     <td className="px-4 py-3">
                       {[
                         o.address?.house,
@@ -103,8 +126,13 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
                       ]
                         .filter(Boolean)
                         .join(", ") || "-"}
+                      {o.giftWrap && (
+                        <div className="mt-1 inline-block px-2 py-0.5 rounded text-[10px] bg-pink-50 text-pink-600 border border-pink-100">
+                          Gift Wrap
+                        </div>
+                      )}
                     </td>
-                    <td className="px-4 py-3">{Array.isArray(o.productIds) ? o.productIds.join(", ") : "-"}</td>
+                    <td className="px-4 py-3">{formatProducts(o.productIds)}</td>
                     <td className="px-4 py-3 font-bold">₹{o.amount ?? 0}</td>
                     <td className="px-4 py-3">
                       <OrderStatusSelect id={o._id} value={o.status} />
@@ -128,8 +156,11 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
                 <div className="font-mono text-sm">{o.orderId || o._id}</div>
                 <OrderStatusSelect id={o._id} value={o.status} />
               </div>
-              <div className="mt-2 text-sm text-gray-700">{o.customerName || "-"}</div>
-              <div className="mt-1 text-xs text-gray-500">
+              <div className="mt-2 text-sm text-gray-700 font-medium">{o.customerName || "-"}</div>
+              <div className="text-xs text-gray-500">
+                {o.mobile} {o.altMobile && `• ${o.altMobile}`}
+              </div>
+              <div className="mt-2 text-xs text-gray-600 bg-gray-50 p-2 rounded">
                 {[
                   o.address?.house,
                   o.address?.street,
@@ -139,8 +170,14 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams?:
                   .filter(Boolean)
                   .join(", ") || "-"}
               </div>
-              <div className="mt-1 text-xs text-gray-500">{Array.isArray(o.productIds) ? o.productIds.join(", ") : "-"}</div>
-              <div className="mt-2 flex items-center justify-between">
+              {o.note && <div className="mt-1 text-xs text-gray-500 italic">Note: {o.note}</div>}
+              {o.giftWrap && (
+                <div className="mt-1 inline-block px-2 py-0.5 rounded text-[10px] bg-pink-50 text-pink-600 border border-pink-100">
+                  Gift Wrap
+                </div>
+              )}
+              <div className="mt-2 text-xs text-gray-700">{formatProducts(o.productIds)}</div>
+              <div className="mt-2 flex items-center justify-between border-t pt-2">
                 <div className="text-sm font-bold">₹{o.amount ?? 0}</div>
                 <div className="text-xs text-gray-500">{new Date(o.createdAt).toLocaleString()}</div>
               </div>
