@@ -5,10 +5,22 @@ import AdminProductCard from "@/components/AdminProductCard";
 export const dynamic = "force-dynamic";
 
 async function getProducts() {
-  const client = await clientPromise;
-  const db = client.db("perfectparcel");
-  const products = await db.collection("products").find({}).sort({ createdAt: -1 }).toArray();
-  return JSON.parse(JSON.stringify(products));
+  try {
+    const client = await clientPromise;
+    const db = client.db("perfectparcel");
+    const products = await db.collection("products")
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    return products.map(p => ({
+      ...p,
+      _id: p._id.toString(),
+    }));
+  } catch (error) {
+    console.error("Failed to fetch admin products:", error);
+    return [];
+  }
 }
 
 export default async function AdminProductsPage() {

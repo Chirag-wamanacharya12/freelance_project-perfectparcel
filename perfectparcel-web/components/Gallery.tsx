@@ -19,6 +19,7 @@ export default function Gallery() {
                     src={src}
                     alt="Gallery image"
                     fill
+                    sizes="(max-width: 768px) 50vw, 20vw"
                     className="object-cover"
                  />
                  {/* <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-500 font-mono opacity-0 group-hover:opacity-100 bg-white/80 transition-opacity">

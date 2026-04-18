@@ -11,17 +11,23 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { image, category, productId, price, discount, quantity } = body || {};
+    const { image, category, productId, price, discount, quantity, name } = body || {};
 
     if (!image || !category || !productId || typeof price !== "number") {
-      return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
+      return NextResponse.json({ message: "Invalid payload: image, category, productId, and price are required" }, { status: 400 });
     }
 
     const client = await clientPromise;
     const db = client.db("perfectparcel");
 
+    // Check if productId already exists
+    const existing = await db.collection("products").findOne({ productId: String(productId) });
+    if (existing) {
+      return NextResponse.json({ message: `Product with ID ${productId} already exists` }, { status: 400 });
+    }
+
     const doc = {
-      name: String(productId),
+      name: String(name || productId),
       productId: String(productId),
       category: String(category).trim().toLowerCase(),
       image: String(image),

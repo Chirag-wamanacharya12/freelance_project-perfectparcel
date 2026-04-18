@@ -95,6 +95,7 @@ export default function Collections() {
                                 src={item.image}
                                 alt={item.name}
                                 fill
+                                sizes="(max-width: 768px) 100vw, 280px"
                                 className="object-cover group-hover/card:scale-110 transition-transform duration-500"
                              />
                              <div className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full backdrop-blur-sm z-20">

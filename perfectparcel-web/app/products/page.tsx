@@ -17,16 +17,25 @@ interface Product {
 }
 
 async function getProducts() {
-  const client = await clientPromise;
-  const db = client.db("perfectparcel");
-  const products = await db.collection("products").find({ is_discontinued: { $ne: true } }).toArray();
-  // Serialize to handle ObjectId and other non-serializable fields if needed, 
-  // though for server components strict serialization isn't always enforced for internal use,
-  // but it's good practice especially if we pass data to client components later.
-  return JSON.parse(JSON.stringify(products)) as Product[];
+  try {
+    const client = await clientPromise;
+    const db = client.db("perfectparcel");
+    const products = await db.collection("products")
+      .find({ is_discontinued: { $ne: true } })
+      .project({ _id: 1, name: 1, productId: 1, price: 1, category: 1, image: 1, inStock: 1 })
+      .toArray();
+    
+    return products.map(p => ({
+      ...p,
+      _id: p._id.toString(),
+    })) as Product[];
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    return [];
+  }
 }
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60; // Revalidate every minute
 
 export default async function ProductsPage() {
   const [products, session] = await Promise.all([
@@ -86,6 +95,7 @@ export default async function ProductsPage() {
                         src={product.image || "/images/placeholder.jpg"}
                         alt={product.name}
                         fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>

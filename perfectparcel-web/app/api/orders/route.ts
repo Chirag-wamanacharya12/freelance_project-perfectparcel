@@ -24,11 +24,16 @@ export async function POST(req: Request) {
     const client = await clientPromise;
     const db = client.db("perfectparcel");
 
-    const products = await db
+    const productsData = await db
       .collection("products")
       .find({ productId: { $in: productIds } })
       .toArray();
-    const baseAmount = products.reduce((sum, p: any) => sum + (p.price || 0), 0);
+
+    // Map products for quick lookup
+    const productMap = new Map(productsData.map(p => [p.productId, p.price || 0]));
+    
+    // Calculate baseAmount correctly by iterating over productIds (which may contain duplicates for quantity)
+    const baseAmount = productIds.reduce((sum, id) => sum + (productMap.get(id) || 0), 0);
     const deliveryCharge = 50;
     const giftWrapCharge = giftWrap ? 20 : 0;
     const amount = baseAmount + deliveryCharge + giftWrapCharge;
@@ -53,7 +58,7 @@ export async function POST(req: Request) {
       amount,
       charges: { delivery: deliveryCharge, giftWrap: giftWrapCharge },
       status: "pending",
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     };
 
     const result = await db.collection("orders").insertOne(doc);

@@ -19,7 +19,10 @@ export async function GET(req: Request) {
     .sort({ createdAt: -1 })
     .limit(30)
     .toArray();
-  const unseenCount = notifications.filter((n: any) => !(n.seenBy || []).includes(userId || "anon")).length;
+  
+  const unseenFilter = { ...filter, seenBy: { $ne: userId || "anon" } };
+  const unseenCount = await db.collection("notifications").countDocuments(unseenFilter);
+
   return NextResponse.json({
     notifications: notifications.map((n: any) => ({
       _id: n._id?.toString(),

@@ -72,6 +72,7 @@ export default function AdminProductCard({ product, compact = false }: { product
           src={product.image || "/images/placeholder.jpg"}
           alt={product.name || product.productId}
           fill
+          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="object-cover"
         />
         {product.is_discontinued && (

@@ -48,16 +48,21 @@ function badge(status: Order["status"]) {
 }
 
 async function getOrders(status?: string) {
-  const client = await clientPromise;
-  const db = client.db("perfectparcel");
-  const query = status && status !== "all" ? { status } : {};
-  const orders = await db.collection("orders").find(query).sort({ createdAt: -1 }).toArray();
-  const normalized = orders.map((o: any) => ({
-    ...o,
-    _id: o._id?.toString(),
-    createdAt: typeof o.createdAt === "string" ? o.createdAt : new Date(o.createdAt).toISOString(),
-  }));
-  return JSON.parse(JSON.stringify(normalized)) as Order[];
+  try {
+    const client = await clientPromise;
+    const db = client.db("perfectparcel");
+    const query = status && status !== "all" ? { status } : {};
+    const orders = await db.collection("orders").find(query).sort({ createdAt: -1 }).toArray();
+    
+    return orders.map((o: any) => ({
+      ...o,
+      _id: o._id?.toString(),
+      createdAt: o.createdAt instanceof Date ? o.createdAt.toISOString() : String(o.createdAt),
+    })) as Order[];
+  } catch (error) {
+    console.error("Failed to fetch orders:", error);
+    return [];
+  }
 }
 
 export default async function AdminOrdersPage({ searchParams }: { searchParams?: Promise<{ status?: string }> }) {
