@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { NextPage } from "next";
 
 export default function AddProductForm() {
@@ -8,8 +8,10 @@ export default function AddProductForm() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
   const [category, setCategory] = useState("");
+  const [existingCategories, setExistingCategories] = useState<string[]>([]);
   const [productId, setProductId] = useState("");
-  const [priceInput, setPriceInput] = useState<string>("");
+  const [name, setName] = useState("");
+  const [mrpInput, setMrpInput] = useState<string>("");
   const [discountInput, setDiscountInput] = useState<string>("0");
   const [quantityInput, setQuantityInput] = useState<string>("0");
   const [loading, setLoading] = useState(false);
@@ -17,14 +19,29 @@ export default function AddProductForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const price = Number(priceInput) || 0;
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/products/categories");
+        if (res.ok) {
+          const data = await res.json();
+          setExistingCategories(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const mrp = Number(mrpInput) || 0;
   const discount = Math.min(Math.max(Number(discountInput) || 0, 0), 100);
   const quantity = Math.max(0, Math.floor(Number(quantityInput) || 0));
 
   const finalPrice = useMemo(() => {
-    const discounted = price - price * (discount / 100);
+    const discounted = mrp - mrp * (discount / 100);
     return Math.max(0, Number(discounted.toFixed(2)));
-  }, [price, discount]);
+  }, [mrp, discount]);
 
   const resizeImage = async (input: File) => {
     const url = URL.createObjectURL(input);
@@ -82,7 +99,7 @@ export default function AddProductForm() {
     setError("");
     setSuccess("");
 
-    if ((!imageUrl && !file) || !category || !productId || price <= 0) {
+    if ((!imageUrl && !file) || !category || !productId || mrp <= 0) {
       setError("Please fill all required fields");
       return;
     }
@@ -103,8 +120,10 @@ export default function AddProductForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           image: imageUrl,
+          name,
           category,
           productId,
+          mrp,
           price: finalPrice,
           discount,
           quantity,
@@ -118,9 +137,10 @@ export default function AddProductForm() {
         setImageUrl("");
         setFile(null);
         setPreview("");
+        setName("");
         setCategory("");
         setProductId("");
-        setPriceInput("");
+        setMrpInput("");
         setDiscountInput("0");
         setQuantityInput("0");
       }
@@ -135,75 +155,92 @@ export default function AddProductForm() {
     <form className="space-y-6" onSubmit={handleSubmit}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-800">Product image</label>
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              const f = e.dataTransfer.files?.[0];
-              if (f) {
-                setFile(f);
-                setPreview(URL.createObjectURL(f));
-                setImageUrl("");
-              }
-            }}
-            className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50 text-center cursor-pointer hover:border-[#D14D59]"
-          >
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const f = e.target.files?.[0] || null;
-                setFile(f);
-                setPreview(f ? URL.createObjectURL(f) : "");
-                setImageUrl("");
-              }}
-              className="hidden"
-              id="file-input"
-            />
-            <label htmlFor="file-input" className="block text-sm text-gray-600">
-              {preview ? "Tap to change image" : "Tap to select or drag and drop image"}
-            </label>
-            {preview && (
-              <img
-                src={preview}
-                alt="preview"
-                className="mt-3 mx-auto max-h-40 rounded-md object-contain"
-              />
-            )}
-            {!preview && imageUrl && (
-              <img
-                src={imageUrl}
-                alt="uploaded"
-                className="mt-3 mx-auto max-h-40 rounded-md object-contain"
-              />
-            )}
-            <div className="mt-2 text-xs text-gray-500">
-              {uploading ? "Uploading..." : imageUrl ? "Image uploaded" : file ? "Ready to upload" : "No image selected"}
-            </div>
-          </div>
-          {file && !imageUrl && (
-            <button
-              type="button"
-              onClick={uploadImage}
-              disabled={uploading}
-              className="mt-2 w-full bg-gray-800 text-white py-2 rounded-lg text-sm font-bold hover:bg-black transition-all disabled:opacity-60"
-            >
-              {uploading ? "Uploading..." : "Upload image"}
-            </button>
-          )}
+          <label className="text-xs font-bold text-gray-800">Product Name</label>
+          <input
+            type="text"
+            placeholder="E.g. Blue Crystal Bracelet"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
+          />
         </div>
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-gray-800">Category name</label>
           <input
             type="text"
             placeholder="Bracelets / Earrings / Nails..."
+            list="category-suggestions"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
             required
           />
+          <datalist id="category-suggestions">
+            {existingCategories.map((cat) => (
+              <option key={cat} value={cat} />
+            ))}
+          </datalist>
         </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-bold text-gray-800">Product image</label>
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const f = e.dataTransfer.files?.[0];
+            if (f) {
+              setFile(f);
+              setPreview(URL.createObjectURL(f));
+              setImageUrl("");
+            }
+          }}
+          className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50 text-center cursor-pointer hover:border-[#D14D59]"
+        >
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const f = e.target.files?.[0] || null;
+              setFile(f);
+              setPreview(f ? URL.createObjectURL(f) : "");
+              setImageUrl("");
+            }}
+            className="hidden"
+            id="file-input"
+          />
+          <label htmlFor="file-input" className="block text-sm text-gray-600">
+            {preview ? "Tap to change image" : "Tap to select or drag and drop image"}
+          </label>
+          {preview && (
+            <img
+              src={preview}
+              alt="preview"
+              className="mt-3 mx-auto max-h-40 rounded-md object-contain"
+            />
+          )}
+          {!preview && imageUrl && (
+            <img
+              src={imageUrl}
+              alt="uploaded"
+              className="mt-3 mx-auto max-h-40 rounded-md object-contain"
+            />
+          )}
+          <div className="mt-2 text-xs text-gray-500">
+            {uploading ? "Uploading..." : imageUrl ? "Image uploaded" : file ? "Ready to upload" : "No image selected"}
+          </div>
+        </div>
+        {file && !imageUrl && (
+          <button
+            type="button"
+            onClick={uploadImage}
+            disabled={uploading}
+            className="mt-2 w-full bg-gray-800 text-white py-2 rounded-lg text-sm font-bold hover:bg-black transition-all disabled:opacity-60"
+          >
+            {uploading ? "Uploading..." : "Upload image"}
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -219,14 +256,14 @@ export default function AddProductForm() {
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-800">Price (MRP)</label>
+          <label className="text-xs font-bold text-gray-800">Original Price (MRP ₹)</label>
           <input
             type="number"
             min="0"
             step="0.01"
-            placeholder="Enter price"
-            value={priceInput}
-            onChange={(e) => setPriceInput(e.target.value)}
+            placeholder="Enter MRP"
+            value={mrpInput}
+            onChange={(e) => setMrpInput(e.target.value)}
             className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
             required
           />
@@ -237,7 +274,6 @@ export default function AddProductForm() {
             type="number"
             min="0"
             max="100"
-            step="1"
             placeholder="0"
             value={discountInput}
             onChange={(e) => setDiscountInput(e.target.value)}
@@ -261,15 +297,10 @@ export default function AddProductForm() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-800">Calculated price</label>
-          <input
-            type="text"
-            value={`₹${finalPrice}`}
-            readOnly
-            className="w-full text-sm p-3 bg-gray-50 rounded-lg border border-dashed border-gray-200 text-gray-700"
-          />
+      <div className="space-y-1.5">
+        <label className="text-xs font-bold text-gray-800 text-[#D14D59]">Final Selling Price (After Discount)</label>
+        <div className="w-full text-sm p-3 bg-red-50 text-[#D14D59] font-bold rounded-lg border border-red-100">
+          ₹{finalPrice}
         </div>
       </div>
 

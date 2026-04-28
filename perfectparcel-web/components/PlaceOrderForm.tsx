@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import ProductCodePicker from "@/components/ProductCodePicker";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { LogIn } from "lucide-react";
 
 type Product = {
   productId: string;
@@ -15,13 +17,10 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
   const { data: session } = useSession();
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
-  const [altMobile, setAltMobile] = useState("");
   const [house, setHouse] = useState("");
   const [street, setStreet] = useState("");
   const [landmark, setLandmark] = useState("");
   const [pin, setPin] = useState("");
-  const [giftWrap, setGiftWrap] = useState(false);
-  const [note, setNote] = useState("");
   const [codes, setCodes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,15 +40,6 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
       });
     return arr;
   }, [codes]);
-  const subtotal = useMemo(() => {
-    return selectedItems.reduce((sum, it) => {
-      const p = products.find((pr) => pr.productId === it.id);
-      return sum + (p?.price || 0) * it.qty;
-    }, 0);
-  }, [selectedItems, products]);
-  const delivery = useMemo(() => (subtotal > 0 ? 50 : 0), [subtotal]);
-  const giftWrapCharge = useMemo(() => (subtotal > 0 && giftWrap ? 20 : 0), [subtotal, giftWrap]);
-  const total = useMemo(() => subtotal + delivery + giftWrapCharge, [subtotal, delivery, giftWrapCharge]);
 
   useEffect(() => {
     const load = async () => {
@@ -60,12 +50,10 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
         const last = data.lastOrder || null;
         if (!name && user.name) setName(user.name);
         if (!mobile && last?.mobile) setMobile(last.mobile);
-        if (!altMobile && last?.altMobile) setAltMobile(last.altMobile);
         if (!house && last?.address?.house) setHouse(last.address.house);
         if (!street && last?.address?.street) setStreet(last.address.street);
         if (!landmark && last?.address?.landmark) setLandmark(last.address.landmark);
         if (!pin && last?.address?.pin) setPin(last.address.pin);
-        if (!note && last?.note) setNote(last.note);
       } catch {}
     };
     if (session) load();
@@ -75,7 +63,13 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
     e.preventDefault();
     setError("");
     setSuccess("");
-    if (!name || !mobile || !altMobile || !house || !street || !landmark || !pin || !codes) {
+
+    if (!session) {
+      setError("Please login to place an order");
+      return;
+    }
+
+    if (!name || !mobile || !house || !street || !landmark || !pin || !codes) {
       setError("Please fill all required fields");
       return;
     }
@@ -87,15 +81,12 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
         body: JSON.stringify({
           customerName: name,
           mobile,
-          altMobile,
           address: {
             house,
             street,
             landmark,
             pin,
           },
-          giftWrap,
-          note,
           productIds: selectedItems.flatMap((it) => Array(it.qty).fill(it.id)),
         }),
       });
@@ -106,13 +97,10 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
         setSuccess("Order placed successfully");
         setName("");
         setMobile("");
-        setAltMobile("");
         setHouse("");
         setStreet("");
         setLandmark("");
         setPin("");
-        setGiftWrap(false);
-        setNote("");
         setCodes("");
       }
     } catch {
@@ -123,134 +111,115 @@ export default function PlaceOrderForm({ products }: { products: Product[] }) {
   };
 
   return (
-    <form className="space-y-6" onSubmit={submit}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="max-w-md mx-auto bg-white rounded-[2rem] border-4 border-[#D14D59] overflow-hidden shadow-2xl">
+      <div className="bg-[#D14D59] py-6 px-4">
+        <h2 className="text-3xl font-extrabold text-white text-center tracking-tight">Place Order</h2>
+      </div>
+      
+      <form className="p-6 space-y-5" onSubmit={submit}>
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-800">Customer name</label>
+          <label className="text-sm font-bold text-gray-800 ml-1">Customer name</label>
           <input
             type="text"
             placeholder="Enter your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
+            className="w-full text-sm p-3.5 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D14D59]/20 border border-transparent focus:border-[#D14D59] transition-all placeholder:text-gray-400"
             required
           />
         </div>
+
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-800">Mobile no</label>
+          <label className="text-sm font-bold text-gray-800 ml-1">Delivery address</label>
+          <div className="space-y-3">
+            <input
+              type="text"
+              placeholder="House no / Apartment"
+              value={house}
+              onChange={(e) => setHouse(e.target.value)}
+              className="w-full text-sm p-3.5 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D14D59]/20 border border-transparent focus:border-[#D14D59] transition-all placeholder:text-gray-400"
+              required
+            />
+            <input
+              type="text"
+              placeholder="Locality / street / city"
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
+              className="w-full text-sm p-3.5 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D14D59]/20 border border-transparent focus:border-[#D14D59] transition-all placeholder:text-gray-400"
+              required
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Landmark"
+                value={landmark}
+                onChange={(e) => setLandmark(e.target.value)}
+                className="w-full text-sm p-3.5 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D14D59]/20 border border-transparent focus:border-[#D14D59] transition-all placeholder:text-gray-400"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Pin Code"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                className="w-full text-sm p-3.5 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D14D59]/20 border border-transparent focus:border-[#D14D59] transition-all placeholder:text-gray-400"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-sm font-bold text-gray-800 ml-1">Mobile no</label>
           <input
             type="tel"
             placeholder="Enter your mobile no"
             value={mobile}
             onChange={(e) => setMobile(e.target.value)}
-            className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
+            className="w-full text-sm p-3.5 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D14D59]/20 border border-transparent focus:border-[#D14D59] transition-all placeholder:text-gray-400"
             required
           />
         </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-3">
-          <label className="text-xs font-bold text-gray-800">Delivery address</label>
-          <input
-            type="text"
-            placeholder="House no / Apartment"
-            value={house}
-            onChange={(e) => setHouse(e.target.value)}
-            className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Locality / street / city"
-            value={street}
-            onChange={(e) => setStreet(e.target.value)}
-            className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-            required
-          />
-          <div className="grid grid-cols-[2fr_1fr] gap-3">
-            <input
-              type="text"
-              placeholder="Landmark"
-              value={landmark}
-              onChange={(e) => setLandmark(e.target.value)}
-              className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-              required
-            />
-            <input
-              type="text"
-              placeholder="Pin Code"
-              value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-              required
-            />
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-800">Alternate Mobile no</label>
-            <input
-              type="tel"
-              placeholder="Enter your mobile no"
-              value={altMobile}
-              onChange={(e) => setAltMobile(e.target.value)}
-              className="w-full text-sm p-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-              required
-            />
-          </div>
-          <div className="flex items-center gap-2 pt-2">
-            <input
-              type="checkbox"
-              id="gift-wrap"
-              checked={giftWrap}
-              onChange={(e) => setGiftWrap(e.target.checked)}
-              className="w-4 h-4 accent-[#D14D59] rounded cursor-pointer"
-            />
-            <label htmlFor="gift-wrap" className="text-sm text-gray-500 cursor-pointer select-none">
-              Want Gift wrap ? ( charges applicable )
-            </label>
-          </div>
-          <div className="relative">
-            <textarea
-              placeholder="Additional note"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="w-full text-sm p-3 bg-gray-100 rounded-lg h-24 resize-none focus:outline-none focus:ring-1 focus:ring-[#D14D59] transition-all"
-            ></textarea>
-          </div>
-        </div>
-      </div>
 
-      <ProductCodePicker products={products} value={codes} onChange={setCodes} />
-      <div className="p-4 rounded-xl border border-gray-100 bg-white">
-        <div className="flex items-center justify-between text-sm">
-          <div className="text-gray-600">Subtotal</div>
-          <div className="font-bold text-gray-900">₹{subtotal}</div>
-        </div>
-        <div className="flex items-center justify-between text-sm mt-2">
-          <div className="text-gray-600">Delivery</div>
-          <div className="font-bold text-gray-900">₹{delivery}</div>
-        </div>
-        <div className="flex items-center justify-between text-sm mt-2">
-          <div className="text-gray-600">Gift wrap</div>
-          <div className="font-bold text-gray-900">₹{giftWrapCharge}</div>
-        </div>
-        <div className="flex items-center justify-between text-sm mt-3 border-t pt-3">
-          <div className="text-gray-800 font-bold">Total</div>
-          <div className="text-gray-900 font-extrabold">₹{total}</div>
-        </div>
-      </div>
+        <ProductCodePicker products={products} value={codes} onChange={setCodes} />
 
-      {error && <div className="text-red-500 text-sm">{error}</div>}
-      {success && <div className="text-green-600 text-sm">{success}</div>}
+        {!session && (
+          <div className="bg-amber-50 text-amber-700 text-sm p-4 rounded-2xl border border-amber-100 flex flex-col items-center gap-3">
+            <div className="flex items-center gap-2 font-bold">
+              <LogIn className="w-4 h-4" />
+              Login Required
+            </div>
+            <p className="text-center text-xs text-amber-600">
+              You need to be logged in to place an order and track its status.
+            </p>
+            <Link 
+              href="/login" 
+              className="px-6 py-2 bg-amber-600 text-white rounded-xl text-xs font-bold hover:bg-amber-700 transition-all shadow-md shadow-amber-200"
+            >
+              Login Now
+            </Link>
+          </div>
+        )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-[#D14D59] text-white py-3 rounded-lg text-sm font-bold hover:bg-[#b93c47] transition-all shadow-md mt-4 disabled:opacity-60"
-      >
-        {loading ? "Placing..." : "Send details"}
-      </button>
-    </form>
+        {error && (
+          <div className="bg-red-50 text-red-500 text-xs p-3 rounded-lg border border-red-100 font-medium">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="bg-green-50 text-green-600 text-xs p-3 rounded-lg border border-green-100 font-medium">
+            {success}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading || !session}
+          className="w-full bg-[#D14D59] text-white py-4 rounded-xl text-base font-bold hover:bg-[#b93c47] transition-all shadow-lg shadow-[#D14D59]/30 disabled:opacity-60 disabled:bg-gray-400 disabled:shadow-none active:scale-[0.98]"
+        >
+          {!session ? "Login to place order" : loading ? "Processing..." : "Send details"}
+        </button>
+      </form>
+    </div>
   );
 }

@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { sendWhatsAppMessage } from "@/lib/twilio";
 
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ message: "Login required to place order" }, { status: 401 });
+    }
+
     const body = await req.json();
     const {
       customerName,
@@ -42,7 +47,7 @@ export async function POST(req: Request) {
 
     const doc = {
       orderId,
-      userId: session?.user?.id || null,
+      userId: session.user.id,
       customerName,
       mobile,
       altMobile,
@@ -82,6 +87,29 @@ export async function POST(req: Request) {
       seenBy: [],
       createdAt: new Date(),
     });
+
+    // Send WhatsApp notification to Admin
+    const counts: Record<string, number> = {};
+    productIds.forEach((id) => {
+      counts[id] = (counts[id] || 0) + 1;
+    });
+    const itemList = Object.entries(counts).map(([id, count]) => {
+      const p = productsData.find(pd => pd.productId === id);
+      return `- ${p?.name || id} x ${count}`;
+    }).join('\n');
+    const shortAddress = `${address?.house || ""}, ${address?.street || ""}, ${address?.pin || ""}`;
+    const orderTime = new Date().toLocaleString("en-IN", { 
+      day: "2-digit", 
+      month: "short", 
+      year: "numeric", 
+      hour: "2-digit", 
+      minute: "2-digit", 
+      hour12: true 
+    });
+
+    const whatsappMsg = `🛒 New Order #${orderId} \n \n👤 ${customerName} \n📞 ${mobile} \n \n🧾 Items: \n${itemList} \n \n💰 Total: ₹${amount} \n \n📍 Address: \n${shortAddress} \n \n⏱ Time: ${orderTime} \n \n⚡ Action: Assign rider`;
+    await sendWhatsAppMessage(whatsappMsg);
+
     if (session?.user?.id) {
       const uid = session.user.id;
       const uname = session.user.name || customerName || "";

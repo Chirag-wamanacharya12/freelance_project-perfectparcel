@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { image, category, productId, price, discount, quantity, name } = body || {};
+    const { image, category, productId, mrp, price, discount, quantity, name } = body || {};
 
     if (!image || !category || !productId || typeof price !== "number") {
       return NextResponse.json({ message: "Invalid payload: image, category, productId, and price are required" }, { status: 400 });
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       productId: String(productId),
       category: String(category).trim().toLowerCase(),
       image: String(image),
+      mrp: Number(mrp || price),
       price: Number(price),
       discount: Math.min(Math.max(Number(discount) || 0, 0), 100),
       quantity: Math.max(0, Number(quantity ?? 0)),

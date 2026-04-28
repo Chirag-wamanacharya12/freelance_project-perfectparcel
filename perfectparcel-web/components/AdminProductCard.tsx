@@ -3,12 +3,17 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import ProductEditModal from "./ProductEditModal";
+import { Settings } from "lucide-react";
 
 type Product = {
   _id: string;
   name?: string;
   productId: string;
+  mrp: number;
   price: number;
+  discount?: number;
+  quantity?: number;
   category?: string;
   image?: string;
   inStock?: boolean;
@@ -17,49 +22,7 @@ type Product = {
 
 export default function AdminProductCard({ product, compact = false }: { product: Product; compact?: boolean }) {
   const router = useRouter();
-  const [loading, setLoading] = useState<string | null>(null);
-
-  const discontinue = async () => {
-    setLoading("discontinue");
-    try {
-      const res = await fetch(`/api/products/${product._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_discontinued: true }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      router.refresh();
-    } finally {
-      setLoading(null);
-    }
-  };
-
-  const continueProduct = async () => {
-    setLoading("continue");
-    try {
-      const res = await fetch(`/api/products/${product._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_discontinued: false }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      router.refresh();
-    } finally {
-      setLoading(null);
-    }
-  };
-
-  const hardDelete = async () => {
-    if (!confirm("Delete this product permanently?")) return;
-    setLoading("delete");
-    try {
-      const res = await fetch(`/api/products/${product._id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed");
-      router.refresh();
-    } finally {
-      setLoading(null);
-    }
-  };
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   return (
     <div
@@ -75,6 +38,14 @@ export default function AdminProductCard({ product, compact = false }: { product
           sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="object-cover"
         />
+        <div className="absolute top-2 right-2 flex flex-col gap-2">
+          <button
+            onClick={() => setIsEditModalOpen(true)}
+            className="p-2 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 shadow-sm hover:bg-white hover:text-[#D14D59] transition-all"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+        </div>
         {product.is_discontinued && (
           <div className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
             Discontinued
@@ -90,31 +61,19 @@ export default function AdminProductCard({ product, compact = false }: { product
         </div>
       </div>
       <div className="px-3 pb-3 flex items-center gap-2">
-        {product.is_discontinued ? (
-          <button
-            onClick={continueProduct}
-            disabled={loading === "continue"}
-            className="flex-1 px-3 py-1.5 rounded-lg text-sm font-bold bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
-          >
-            {loading === "continue" ? "Updating..." : "Continue"}
-          </button>
-        ) : (
-          <button
-            onClick={discontinue}
-            disabled={loading === "discontinue"}
-            className="flex-1 px-3 py-1.5 rounded-lg text-sm font-bold bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-60"
-          >
-            {loading === "discontinue" ? "Updating..." : "Discontinue"}
-          </button>
-        )}
         <button
-          onClick={hardDelete}
-          disabled={loading === "delete"}
-          className="flex-1 px-3 py-1.5 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+          onClick={() => setIsEditModalOpen(true)}
+          className="flex-1 px-3 py-1.5 rounded-lg text-sm font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
         >
-          {loading === "delete" ? "Deleting..." : "Delete"}
+          <Settings className="w-4 h-4" /> Edit Details
         </button>
       </div>
+
+      <ProductEditModal
+        product={product}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
     </div>
   );
 }

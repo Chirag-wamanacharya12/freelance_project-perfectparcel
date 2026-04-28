@@ -11,15 +11,37 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
   const { id } = await params;
   const body = await req.json();
-  const is_discontinued = !!(body?.is_discontinued ?? body?.discontinued);
+  
   try {
     const client = await clientPromise;
     const db = client.db("perfectparcel");
+    
+    // Build update object dynamically
+    const updateData: any = {};
+    if (body.name !== undefined) updateData.name = String(body.name);
+    if (body.productId !== undefined) updateData.productId = String(body.productId);
+    if (body.category !== undefined) updateData.category = String(body.category).trim().toLowerCase();
+    if (body.mrp !== undefined) updateData.mrp = Number(body.mrp);
+    if (body.price !== undefined) updateData.price = Number(body.price);
+    if (body.discount !== undefined) updateData.discount = Number(body.discount);
+    if (body.quantity !== undefined) {
+      updateData.quantity = Number(body.quantity);
+      updateData.inStock = updateData.quantity > 0;
+    }
+    if (body.is_discontinued !== undefined) updateData.is_discontinued = !!body.is_discontinued;
+    if (body.image !== undefined) updateData.image = String(body.image);
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ message: "No fields to update" }, { status: 400 });
+    }
+
     await db
       .collection("products")
-      .updateOne({ _id: new ObjectId(id) }, { $set: { is_discontinued } });
+      .updateOne({ _id: new ObjectId(id) }, { $set: updateData });
+    
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (e) {
+    console.error("Update error:", e);
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }

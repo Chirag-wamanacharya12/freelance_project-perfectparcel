@@ -122,17 +122,10 @@ export default async function ProductsPage() {
           ))
         )}
 
-        {/* Customer: Place Order */}
-        {!isAdmin && (
-          <div id="order-form" className="mt-20 border-2 border-[#D14D59] rounded-xl overflow-hidden max-w-4xl mx-auto shadow-xl bg-white">
-            <div className="bg-[#D14D59] text-white py-4 text-center font-bold text-xl tracking-wide">
-              Place Order
-            </div>
-            <div className="p-8">
-              <PlaceOrderForm products={products} />
-            </div>
-          </div>
-        )}
+        {/* Order Collection Form */}
+        <div id="order-form" className="mt-20">
+          <PlaceOrderForm products={products} />
+        </div>
 
       </div>
       
